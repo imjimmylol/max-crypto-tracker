@@ -39,8 +39,18 @@ except ValueError:
 # so you don't have to log in every time.
 client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
+# --- Topic Configuration ---
+# Replace this with the ID of the topic you want to monitor
+TARGET_TOPIC_ID = 5
 
-@client.on(events.NewMessage(chats=[-1002430013497]))  # type: ignore[misc]
+
+@client.on(
+    events.NewMessage(
+        chats=[-1002430013497],
+        func=lambda e: e.message.reply_to is not None
+        and e.message.reply_to.reply_to_msg_id == TARGET_TOPIC_ID,
+    )
+)  # type: ignore[misc]
 async def handle_new_message(event: events.NewMessage.Event) -> None:
     """Handle new messages in the specified chat.
 

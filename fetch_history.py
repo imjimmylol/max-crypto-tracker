@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import json
 import logging
 import os
@@ -32,11 +33,12 @@ except ValueError:
 
 # --- Constants ---
 TARGET_CHAT_ID = -1002430013497
+TARGET_TOPIC_ID = 5  # The ID for the topic to filter by
 OUTPUT_FILE = "messages.json"
 
 
 async def fetch_history(past_days: int) -> None:
-    """Fetch historical messages from a specific chat."""
+    """Fetch historical messages from a specific chat and topic."""
     client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
     LOGGER.info("Starting client to fetch message history...")
@@ -47,8 +49,8 @@ async def fetch_history(past_days: int) -> None:
     try:
         target_chat = await client.get_entity(TARGET_CHAT_ID)
         LOGGER.info(
-            f"Fetching messages from '{target_chat.title}' for the last"
-            f" {past_days} day(s)."
+            f"Fetching messages from '{target_chat.title}' "
+            f"(Topic ID: {TARGET_TOPIC_ID}) for the last {past_days} day(s)."
         )
     except Exception as e:
         LOGGER.error(
@@ -63,11 +65,14 @@ async def fetch_history(past_days: int) -> None:
     messages_data = []
     message_count = 0
 
-    # Iterate through the messages
+    # Iterate through the messages, using the efficient server-side filter
     async for message in client.iter_messages(
-        target_chat, offset_date=offset_date, reverse=True
+        target_chat,
+        offset_date=offset_date,
+        reply_to=TARGET_TOPIC_ID,  # This is the server-side filter
+        reverse=True,
     ):
-        if message.text:  # We only care about messages with text
+        if message.text:  # The filtering is now done by the server
             messages_data.append(
                 {
                     "message_id": message.id,
@@ -93,7 +98,7 @@ async def fetch_history(past_days: int) -> None:
 def main() -> None:
     """Parse command-line arguments and run the fetch_history function."""
     parser = argparse.ArgumentParser(
-        description="Fetch historical messages from a Telegram chat."
+        description="Fetch historical messages from a Telegram chat topic."
     )
     parser.add_argument(
         "--past-days",
@@ -102,8 +107,6 @@ def main() -> None:
         help="The number of past days of message history to fetch. Defaults to 7.",
     )
     args = parser.parse_args()
-
-    import asyncio
 
     asyncio.run(fetch_history(args.past_days))
 
