@@ -1,0 +1,58 @@
+
+[project]
+name = "crypto-signal-tracker"
+version = "0.1.0"
+description = "A Python application to monitor, parse, and analyze Telegram trading signals."
+requires-python = ">=3.10"
+dependencies = [
+    "telethon",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "black",
+    "mypy",
+    "pytest",
+    "pre-commit",
+]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+# See https://docs.astral.sh/ruff/rules/ for a full list of rules
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "W",  # pycodestyle warnings
+    "B",  # flake8-bugbear
+    "I",  # isort
+    "D",  # pydocstyle
+]
+ignore = [
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
+    "D107", # Missing docstring in __init__
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["crypto_signal_tracker"]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+# Allows mypy to work with pre-commit
+# See: https://github.com/pre-commit/mirrors-mypy/issues/22#issuecomment-1626019284
+follow_imports = "silent"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
